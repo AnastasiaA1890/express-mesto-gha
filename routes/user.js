@@ -17,6 +17,6 @@ const {createUser} = require('../controllers/user')
 //   } res.send(User[req.params.id])
 // })
 
-userRouter.post('/users', createUser)
+userRouter.post('/', createUser)
 
 module.exports = userRouter;
