@@ -4,13 +4,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minLength: 2,
-    length: 30
+    maxlength: 30
   },
   about: {
     type: String,
     required: true,
     minLength: 2,
-    length: 30
+    maxlength: 30
   },
   avatar: {
     type: String,
