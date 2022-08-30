@@ -12,14 +12,14 @@ const { NotFoundError } = require('./errors/NotFoundError');
 const { isAuthorized } = require('./middlewares/auth');
 const { regex } = require('./const/constants');
 
-const { PORT = 3000 } = process.env;
-
 app.use(helmet());
 app.disable('x-powered-by');
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
-
 app.use(bodyParser.json());// для собирания JSON-формата
 app.use(bodyParser.urlencoded({ extended: true }));
+
+const { PORT = 3000 } = process.env;
+
+mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
