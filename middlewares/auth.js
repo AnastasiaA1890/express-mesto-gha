@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
-const { Unauthorized } = require('../errors/Unauthorized');
-
-let payload;
+const Unauthorized = require('../errors/Unauthorized');
 
 const isAuthorized = (req, res, next) => {
+  let payload;
+
   const auth = req.headers.authorization;
 
   if (!auth) {
@@ -22,4 +22,4 @@ const isAuthorized = (req, res, next) => {
   next();
 };
 
-module.exports = { isAuthorized };
+module.exports = isAuthorized;

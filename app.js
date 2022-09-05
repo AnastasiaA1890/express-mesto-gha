@@ -1,16 +1,17 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { celebrate, Joi, errors } = require('celebrate');
 const helmet = require('helmet');
+const { errors } = require('celebrate');
 
-const app = express();
 const bodyParser = require('body-parser');
 const userRouter = require('./routes/user');
 const cardRouter = require('./routes/card');
 const { login, createUser } = require('./controllers/user');
-const { NotFoundError } = require('./errors/NotFoundError');
-const { isAuthorized } = require('./middlewares/auth');
-const { regex } = require('./const/constants');
+const NotFoundError = require('./errors/NotFoundError');
+const isAuthorized = require('./middlewares/auth');
+const { validateSignUp, validateSignIn } = require('./middlewares/validators');
+
+const app = express();
 
 app.use(helmet());
 app.disable('x-powered-by');
@@ -21,22 +22,8 @@ const { PORT = 3000 } = process.env;
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
-  }),
-}), login);
-
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().pattern(regex),
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
-  }),
-}), createUser);
+app.post('/signin', validateSignIn, login);
+app.post('/signup', validateSignUp, createUser);
 
 app.use(isAuthorized);
 app.use('/users', userRouter);
