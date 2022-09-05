@@ -22,6 +22,35 @@ const login = (req, res, next) => {
     });
 };
 
+const createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    })
+      .then((user) => {
+        const data = {
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+        };
+        res.status(201).send(data);
+      })
+      .catch((err) => {
+        if (err.code === 11000) {
+          next(new ConflictError('409 - Пользователь с такой почтой уже существует'));
+        } else if (err.name === 'ValidationError') {
+          next(new ValidationError('400 - Переданы некорректные данные при создании пользователя'));
+        } else {
+          next(err);
+        }
+      }));
+};
+
 const getUser = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send(users))
@@ -54,43 +83,6 @@ const getUserById = (req, res, next) => {
         next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
       } else {
         next(err);
-      }
-    });
-};
-
-const createUser = (req, res, next) => {
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
-
-  if (!email || !password) {
-    next(new ValidationError('Email или password не могут быть пустыми'));
-  }
-
-  User.findOne({ email })
-    .then((usr) => {
-      if (usr) {
-        next(new ConflictError('409 - Пользователь с такой почтой уже существует'));
-      } else {
-        bcrypt
-          .hash(password, 10)
-          .then((hash) => User.create({
-            name,
-            about,
-            avatar,
-            email,
-            password: hash,
-          }))
-          .then((user) => res.status(201).send(user.toJSON()))
-          .catch((err) => {
-            if (err.code === 11000) {
-              next(new ConflictError('409 - Пользователь с такой почтой уже существует'));
-            } else if (err.name === 'MongoError' && err.name === 'ValidationError') {
-              next(new ValidationError('400 - Переданы некорректные данные при создании пользователя.'));
-            } else {
-              next(err);
-            }
-          });
       }
     });
 };
