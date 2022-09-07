@@ -22,11 +22,13 @@ const { PORT = 3000 } = process.env;
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
-app.post('/signin', validateSignIn, login);
 app.post('/signup', validateSignUp, createUser);
+app.post('/signin', validateSignIn, login);
+
 app.use(auth);
-app.use('/users', auth, userRouter);
-app.use('/cards', auth, cardRouter);
+
+app.use('/users', userRouter);
+app.use('/cards', cardRouter);
 
 app.use((req, res, next) => {
   next(new NotFoundError('404 - Страницы не существует'));

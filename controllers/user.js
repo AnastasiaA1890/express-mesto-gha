@@ -5,20 +5,50 @@ const ConflictError = require('../errors/ConflictError');
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const Unauthorized = require('../errors/Unauthorized');
+const { secretKey } = require('../const/constants');
 
-const login = (req, res, next) => {
-  const { email, password } = req.body;
-  User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign(
-        { _id: user._id },
-        'some-secret-key',
-        { expiresIn: '7d' },
-      );
-      res.send({ token });
+const getUser = (req, res, next) => {
+  User.find({})
+    .then((users) => {
+      res.send({ users });
     })
     .catch((err) => {
-      next(new Unauthorized(err.message));
+      next(err);
+    });
+};
+
+const getUserInfo = (req, res, next) => {
+  User.findById(req.user)
+    .then((user) => {
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Пользователь по указанному id не найден.'));
+      } else if (err.name === 'NotFound') {
+        next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
+      } else {
+        next(err);
+      }
+    });
+};
+
+const getUserById = (req, res, next) => {
+  console.log(req.params);
+  User.findById(req.params.userId)
+    //.onFail(new Error('NotFound'))
+    .then((user) => {
+      console.log(user);
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Пользователь по указанному id не найден.'));
+      } else if (err.name === 'NotFound') {
+        next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
+      } else {
+        next(err);
+      }
     });
 };
 
@@ -42,7 +72,6 @@ const createUser = (req, res, next) => {
       }) */
       .then((user) => {
         res.status(201).send({
-          _id: user._id,
           name: user.name,
           about: user.about,
           avatar: user.avatar,
@@ -58,42 +87,6 @@ const createUser = (req, res, next) => {
           next(err);
         }
       }));
-};
-
-const getUser = (req, res) => {
-  User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch(() => res.status(500).send({ message: 'Ошибка сервера.' }));
-};
-
-const getUserInfo = (req, res, next) => {
-  User.findById(req.user)
-    .onFail(new Error('NotFound'))
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new ValidationError('Пользователь по указанному id не найден.'));
-      } else if (err.name === 'NotFound') {
-        next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
-      } else {
-        next(err);
-      }
-    });
-};
-
-const getUserById = (req, res, next) => {
-  User.findById(req.params.userId)
-    .onFail(new Error('NotFound'))
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new ValidationError('Пользователь по указанному id не найден.'));
-      } else if (err.name === 'NotFound') {
-        next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
-      } else {
-        next(err);
-      }
-    });
 };
 
 const updateProfile = (req, res, next) => {
@@ -135,6 +128,22 @@ const updateAvatar = (req, res, next) => {
         return;
       }
       next(err);
+    });
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        secretKey,
+        { expiresIn: '7d' },
+      );
+      res.send({ token });
+    })
+    .catch((err) => {
+      next(new Unauthorized(err.message));
     });
 };
 
