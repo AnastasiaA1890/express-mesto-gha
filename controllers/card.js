@@ -76,19 +76,18 @@ const dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(new Error('NoValidId'))
     .then((card) => {
-      if (!card) {
-        next(new NotFoundError('404 - Передан несуществующий _id карточки.'));
-        return;
-      }
-      res.send({ data: card });
+      res.send(card);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.message === 'ValidationError') {
         next(new ValidationError('400 - Переданы некорректные данные для постановки/снятии лайка.'));
-        return;
+      } else if (err.message === 'NoValidId') {
+        next(new NotFoundError('404 - Передан несуществующий _id карточки.'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
