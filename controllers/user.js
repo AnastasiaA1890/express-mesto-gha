@@ -34,21 +34,18 @@ const getUserInfo = (req, res, next) => {
 };
 
 const getUserById = (req, res, next) => {
-  console.log(req.params);
   User.findById(req.params.userId)
-    //.onFail(new Error('NotFound'))
     .then((user) => {
-      console.log(user);
+      if (!user) {
+        next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
+        return;
+      }
       res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ValidationError('Пользователь по указанному id не найден.'));
-      } else if (err.name === 'NotFound') {
-        next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
-      } else {
-        next(err);
-      }
+        next(new ValidationError('404 - Пользователь по указанному id не найден.'));
+      } next(err);
     });
 };
 

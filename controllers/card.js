@@ -25,31 +25,23 @@ const createCard = (req, res, next) => {
 };
 
 const deleteCard = (req, res, next) => {
-  Card.findById(req.params.cardId)
+  const { cardId } = req.params;
+
+  Card.findById(cardId)
     .then((card) => {
-      const owner = card.owner.toHexString();
-      if (!card) {
-        next(new NotFoundError('404 - Карточка с указанным id не найдена'));
-      } else if (owner === req.user._id) {
-        Card.findByIdAndRemove(req.params.cardId)
-          .orFail(new Error('NoValidId'))
-          .then((cardDeleted) => res.send(cardDeleted))
-          .catch((err) => {
-            if (err.message === 'NoValidId') {
-              next(new NotFoundError('404 - Карточка с указанным _id не найдена.'));
-            } else {
-              next(err);
-            }
-          });
+      if (req.user._id !== card.owner.toString()) {
+        next(new DeclinePermission('Чужую карточку нельзя удалить.'));
       } else {
-        next(new DeclinePermission('403 — Попытка удалить чужую карточку'));
+        Card.deleteOne(card).then(() => res
+          .status(200)
+          .send({ message: `Карточка с id ${card.id} успешно удалена!` }));
       }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ValidationError('400 —  Карточка с указанным _id не найдена'));
-      } else if (err.name === 'TypeError') {
-        next(new NotFoundError('404 - Удаление карточки с несуществующим в БД id'));
+        next(new ValidationError('Ошибка в запросе.'));
+      } else if (err.message === 'Error') {
+        next(new NotFoundError('Карточка с указанным _id не найдена.'));
       } else {
         next(err);
       }
@@ -57,25 +49,31 @@ const deleteCard = (req, res, next) => {
 };
 
 const likeCard = (req, res, next) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true, runValidators: true },
+  )
     .then((card) => {
       if (!card) {
         next(new NotFoundError('404 - Передан несуществующий _id карточки.'));
-        return;
       }
       res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('400 - Переданы некорректные данные для постановки/снятии лайка.'));
-        return;
       }
       next(err);
     });
 };
 
 const dislikeCard = (req, res, next) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
     .then((card) => {
       if (!card) {
         next(new NotFoundError('404 - Передан несуществующий _id карточки.'));
