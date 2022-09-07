@@ -35,17 +35,16 @@ const getUserInfo = (req, res, next) => {
 
 const getUserById = (req, res, next) => {
   User.findById(req.params.userId)
+    .orFail(new Error('NotValidId'))
     .then((user) => {
-      if (!user) {
-        next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
-        return;
-      }
       res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new ValidationError('404 - Пользователь по указанному id не найден.'));
-      } next(err);
+      if (err.message === 'CastError') {
+        next(new ValidationError('400 - Получение пользователя с некорректным id'));
+      } else if (err.message === 'NotValidId') {
+        next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
+      }
     });
 };
 

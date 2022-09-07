@@ -28,6 +28,7 @@ const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
 
   Card.findById(cardId)
+    .orFail(new Error('Error'))
     .then((card) => {
       if (req.user._id !== card.owner.toString()) {
         next(new DeclinePermission('Чужую карточку нельзя удалить.'));
