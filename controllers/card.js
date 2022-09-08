@@ -52,7 +52,7 @@ const deleteCard = (req, res, next) => {
 const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
+    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
     .orFail(new Error('NoValidId'))
@@ -60,12 +60,10 @@ const likeCard = (req, res, next) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err.message === 'ValidationError') {
-        next(new ValidationError('400 - Переданы некорректные данные для постановки/снятии лайка.'));
-      } else if (err.message === 'NoValidId') {
-        next(new NotFoundError('404 - Передан несуществующий _id карточки.'));
+      if (err.message === 'NoValidId') {
+        next(new NotFoundError('404 — Передан несуществующий _id карточки'));
       } else {
-        next(err);
+        next(new Error('Ошибка. Что-то пошло не так...'));
       }
     });
 };
