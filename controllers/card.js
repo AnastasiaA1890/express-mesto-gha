@@ -1,5 +1,5 @@
 const Card = require('../models/card');
-const ValidationError= require('../errors/ValidationError');
+const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const DeclinePermission = require('../errors/DeclinePermission');
 
@@ -81,7 +81,6 @@ const dislikeCard = (req, res, next) => {
       res.send(card);
     })
     .catch((err) => {
-      console.log(err.message)
       if (err.message === 'ValidationError') {
         next(new ValidationError('400 - Переданы некорректные данные для постановки/снятии лайка.'));
       } else if (err.message === 'NoValidId') {
