@@ -4,7 +4,6 @@ const User = require('../models/user');
 const ConflictError = require('../errors/ConflictError');
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
-const Unauthorized = require('../errors/Unauthorized');
 const { secretKey } = require('../const/constants');
 
 const getUser = (req, res, next) => {
@@ -12,21 +11,18 @@ const getUser = (req, res, next) => {
     .then((users) => {
       res.send({ users });
     })
-    .catch((err) => {
-      next(err);
-    });
+    .catch(next);
 };
 
 const getUserInfo = (req, res, next) => {
   User.findById(req.user)
+    .orFail(new NotFoundError('404 - Пользователь по указанному id не найден.'))
     .then((user) => {
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Пользователь по указанному id не найден.'));
-      } else if (err.name === 'NotFound') {
-        next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
       } else {
         next(err);
       }
@@ -35,15 +31,15 @@ const getUserInfo = (req, res, next) => {
 
 const getUserById = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(new Error('NotValidId'))
+    .orFail(new NotFoundError('404 - Пользователь по указанному id не найден.'))
     .then((user) => {
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.message === 'CastError') {
         next(new ValidationError('400 - Получение пользователя с некорректным id'));
-      } else if (err.message === 'NotValidId') {
-        next(new NotFoundError('404 - Пользователь по указанному id не найден.'));
+      } else {
+        next(err);
       }
     });
 };
@@ -57,15 +53,6 @@ const createUser = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     })
-      /* .then((user) => {
-        const data = {
-          name: user.name,
-          about: user.about,
-          avatar: user.avatar,
-          email: user.email,
-        };
-        res.status(201).send(data);
-      }) */
       .then((user) => {
         res.status(201).send({
           name: user.name,
@@ -88,11 +75,6 @@ const createUser = (req, res, next) => {
 const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
 
-  if (!name || !about) {
-    next(new NotFoundError('404 - Переданы некорректные данные при обновлении профиля.'));
-    return;
-  }
-
   User
     .findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
@@ -109,11 +91,6 @@ const updateProfile = (req, res, next) => {
 
 const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-
-  if (!avatar) {
-    next(new NotFoundError('404 - Переданы некорректные данные при обновлении аватара.'));
-    return;
-  }
 
   User
     .findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
@@ -138,9 +115,7 @@ const login = (req, res, next) => {
       );
       res.send({ token });
     })
-    .catch((err) => {
-      next(new Unauthorized(err.message));
-    });
+    .catch(next);
 };
 
 module.exports = {

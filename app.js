@@ -8,6 +8,7 @@ const userRouter = require('./routes/user');
 const cardRouter = require('./routes/card');
 const { login, createUser } = require('./controllers/user');
 const NotFoundError = require('./errors/NotFoundError');
+const error = require('./errors/errors');
 const auth = require('./middlewares/auth');
 const { validateSignUp, validateSignIn } = require('./middlewares/validators');
 
@@ -36,12 +37,6 @@ app.use((req, res, next) => {
 
 app.use(errors());
 
-app.use((err, req, res, next) => {
-  if (err.statusCode) {
-    return res.status(err.statusCode).send({ message: err.message });
-  }
-  res.status(500).send({ message: err });
-  return next();
-});
+app.use(error);
 
 app.listen(PORT);

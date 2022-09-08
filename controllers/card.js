@@ -28,21 +28,19 @@ const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
 
   Card.findById(cardId)
-    .orFail(new Error('Error'))
+    .orFail(new NotFoundError('Карточка с указанным _id не найдена.'))
     .then((card) => {
       if (req.user._id !== card.owner.toString()) {
         next(new DeclinePermission('Чужую карточку нельзя удалить.'));
       } else {
-        Card.deleteOne(card).then(() => res
-          .status(200)
-          .send({ message: `Карточка с id ${card.id} успешно удалена!` }));
+        Card.deleteOne(card)
+          .then(() => res.status(200).send({ message: `Карточка с id ${card.id} успешно удалена!` }))
+          .catch(next);
       }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Ошибка в запросе.'));
-      } else if (err.message === 'Error') {
-        next(new NotFoundError('Карточка с указанным _id не найдена.'));
       } else {
         next(err);
       }
@@ -55,15 +53,13 @@ const likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new Error('NoValidId'))
+    .orFail(new NotFoundError('404 - Передан несуществующий _id карточки.'))
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
       if (err.message === 'ValidationError') {
         next(new ValidationError('400 - Переданы некорректные данные для постановки/снятии лайка.'));
-      } else if (err.message === 'NoValidId') {
-        next(new NotFoundError('404 - Передан несуществующий _id карточки.'));
       } else {
         next(err);
       }
@@ -76,15 +72,13 @@ const dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new Error('NoValidId'))
+    .orFail(new NotFoundError('404 - Передан несуществующий _id карточки.'))
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
       if (err.message === 'ValidationError') {
         next(new ValidationError('400 - Переданы некорректные данные для постановки/снятии лайка.'));
-      } else if (err.message === 'NoValidId') {
-        next(new NotFoundError('404 - Передан несуществующий _id карточки.'));
       } else {
         next(err);
       }
