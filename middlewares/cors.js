@@ -1,5 +1,5 @@
 const allowedCors = [
-  'anastasia.mesto.nomoredomains.sbs',
+  'https://anastasia.mesto.nomoredomains.sbs',
 ];
 const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
 
