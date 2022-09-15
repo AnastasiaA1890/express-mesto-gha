@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const { errors } = require('celebrate');
+const cors = require('cors');
 
 const bodyParser = require('body-parser');
 const userRouter = require('./routes/user');
@@ -12,13 +13,13 @@ const error = require('./errors/errors');
 const auth = require('./middlewares/auth');
 const { validateSignUp, validateSignIn } = require('./middlewares/validators');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const cors = require('./middlewares/cors');
+//const cors = require('./middlewares/cors');
 
 const { PORT = 3000 } = process.env;
 
 const app = express();
 
-app.use(cors);
+app.use(cors());
 
 app.use(helmet());
 app.disable('x-powered-by');
