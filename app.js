@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const { errors } = require('celebrate');
-//const cors = require('cors');
+const cors = require('cors');
 require('dotenv').config();
 
 const bodyParser = require('body-parser');
@@ -20,7 +20,7 @@ const { PORT = 3000 } = process.env;
 
 const app = express();
 
-//app.use(cors());
+app.use(cors());
 
 app.use(helmet());
 app.disable('x-powered-by');
