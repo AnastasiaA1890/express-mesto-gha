@@ -9,8 +9,8 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 
 const getUser = (req, res, next) => {
   User.find({})
-    .then((users) => {
-      res.send({ users });
+    .then((user) => {
+      res.send(user);
     })
     .catch(next);
 };
