@@ -79,7 +79,7 @@ const updateProfile = (req, res, next) => {
   User
     .findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
-      res.send({ user });
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -95,7 +95,7 @@ const updateAvatar = (req, res, next) => {
 
   User
     .findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .then((user) => res.send({ user }))
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('400 - Переданы некорректные данные при обновлении аватара.'));
