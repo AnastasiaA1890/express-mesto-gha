@@ -7,13 +7,13 @@ const Unauthorized = require('../errors/Unauthorized');
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    default: 'Жак-Ив Кусто',
+    default: 'Default user',
     minlength: 2,
     maxlength: 30,
   },
   about: {
     type: String,
-    default: 'Исследователь',
+    default: 'Description',
     minlength: 2,
     maxlength: 30,
   },
@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator: (link) => regex.test(link),
-      message: () => 'Неверная ссылка',
+      message: () => 'Wrong link',
     },
   },
   email: {
@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate: {
       validator: (email) => isEmail(email),
-      message: 'Неправильный формат почты',
+      message: 'Wrong email format',
     },
   },
   password: {
@@ -45,12 +45,12 @@ userSchema.statics.findUserByCredentials = function findUserByCredentials(email,
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Unauthorized('Неправильные почта или пароль'));
+        return Promise.reject(new Unauthorized('Wrong email or password'));
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Unauthorized('Неправильные почта или пароль'));
+            return Promise.reject(new Unauthorized('Wrong email or password'));
           }
           return user;
         });

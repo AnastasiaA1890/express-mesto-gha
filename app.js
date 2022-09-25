@@ -47,7 +47,7 @@ app.use('/cards', cardRouter);
 app.use(errorLogger);
 
 app.use((req, res, next) => {
-  next(new NotFoundError('404 - Страницы не существует'));
+  next(new NotFoundError('404 - Page does not exist'));
 });
 
 app.use(errors());

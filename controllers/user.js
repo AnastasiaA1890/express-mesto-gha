@@ -17,13 +17,13 @@ const getUser = (req, res, next) => {
 
 const getUserInfo = (req, res, next) => {
   User.findById(req.user)
-    .orFail(new NotFoundError('404 - Пользователь по указанному id не найден.'))
+    .orFail(new NotFoundError('404 - The user with the specified id was not found.'))
     .then((user) => {
       res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ValidationError('Пользователь по указанному id не найден.'));
+        next(new ValidationError('The user with the specified id was not found.'));
       } else {
         next(err);
       }
@@ -32,13 +32,13 @@ const getUserInfo = (req, res, next) => {
 
 const getUserById = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(new NotFoundError('404 - Пользователь по указанному id не найден.'))
+    .orFail(new NotFoundError('404 - The user with the specified id was not found.'))
     .then((user) => {
       res.send(user);
     })
     .catch((err) => {
       if (err.message === 'CastError') {
-        next(new ValidationError('400 - Получение пользователя с некорректным id'));
+        next(new ValidationError('400 - Getting a user with an incorrect id'));
       } else {
         next(err);
       }
@@ -64,9 +64,9 @@ const createUser = (req, res, next) => {
       })
       .catch((err) => {
         if (err.code === 11000) {
-          next(new ConflictError('409 - Пользователь с такой почтой уже существует'));
+          next(new ConflictError('409 - User with this email already exists.'));
         } else if (err.name === 'ValidationError') {
-          next(new ValidationError('400 - Переданы некорректные данные при создании пользователя'));
+          next(new ValidationError('400 - Incorrect data was passed during user creation.'));
         } else {
           next(err);
         }
@@ -83,7 +83,7 @@ const updateProfile = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError('400 - Переданы некорректные данные при обновлении профиля.'));
+        next(new ValidationError('400 - Incorrect data was sent when updating the profile.'));
         return;
       }
       next(err);
